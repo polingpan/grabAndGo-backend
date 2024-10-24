@@ -149,4 +149,26 @@ export class AuthController {
       });
     }
   }
+
+  @Post('business-login')
+  async businessLogin(@Body() loginDto: LoginDto, @Res() res: Response) {
+    try {
+      const result = await this.authService.businessLogin(
+        loginDto.email,
+        loginDto.password,
+      );
+
+      return res.status(200).json({
+        statusCode: 200,
+        message: 'Login successful',
+        token: result,
+      });
+    } catch (error) {
+      return res.status(401).json({
+        statusCode: 401,
+        message: 'Invalid email or password.',
+        error: error.message,
+      });
+    }
+  }
 }
