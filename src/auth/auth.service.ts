@@ -88,7 +88,6 @@ export class AuthService {
       1800,
     );
 
-    // Send verification email
     await this.emailService.sendBusinessVerificationEmail(
       createBusinessUserDto.email,
       verificationToken,
@@ -127,5 +126,21 @@ export class AuthService {
     await this.cacheManager.del(`businessUser_${token}`);
 
     return businessUser;
+  }
+
+  async businessLogin(email: string, password: string) {
+    const user = await this.businessUserService.findByEmail(email);
+    if (!user) {
+      throw new Error('Invalid email or password.');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new Error('Invalid email or password.');
+    }
+
+    const payload = { userId: user._id, email: user.email };
+
+    return this.jwtService.sign(payload);
   }
 }

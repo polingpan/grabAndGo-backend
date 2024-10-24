@@ -11,5 +11,6 @@ import { CacheModule } from '@nestjs/cache-manager';
   ],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [MongooseModule],
 })
 export class UsersModule {}

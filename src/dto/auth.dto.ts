@@ -4,6 +4,7 @@ import {
   IsString,
   IsBoolean,
   IsOptional,
+  Length,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -21,6 +22,7 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @IsString()
+  @Length(6, 20)
   password: string;
 
   @IsBoolean()
@@ -39,6 +41,7 @@ export class LoginDto {
 
   @IsNotEmpty()
   @IsString()
+  @Length(6, 20)
   password: string;
 }
 
@@ -65,5 +68,6 @@ export class CreateBusinessUserDto {
 
   @IsOptional()
   @IsString()
+  @Length(6, 20)
   password?: string;
 }
