@@ -13,7 +13,6 @@ import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
-
 @Module({
   imports: [
     MongooseModule.forRoot('mongodb://localhost:27017/tooGoodToGo', {}),
