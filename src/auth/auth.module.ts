@@ -12,6 +12,7 @@ import {
   BusinessUserSchema,
 } from 'src/business-users/business-user.schema';
 import { BusinessUsersService } from 'src/business-users/business-users.service';
+import { JwtStrategy } from './jwt/jwt.strategy';
 
 @Module({
   imports: [
@@ -30,6 +31,12 @@ import { BusinessUsersService } from 'src/business-users/business-users.service'
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, EmailService, UsersService, BusinessUsersService],
+  providers: [
+    AuthService,
+    EmailService,
+    UsersService,
+    BusinessUsersService,
+    JwtStrategy,
+  ],
 })
 export class AuthModule {}
