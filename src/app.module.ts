@@ -12,6 +12,7 @@ import * as redisStore from 'cache-manager-redis-store';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { join } from 'path';
     OrdersModule,
     BusinessUsersModule,
     AuthModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
