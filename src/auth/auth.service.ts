@@ -139,7 +139,7 @@ export class AuthService {
       throw new Error('Invalid email or password.');
     }
 
-    const payload = { sub: user._id, email: user.email };
+    const payload = { sub: user._id, email: user.email, name: user.storeName };
 
     return this.jwtService.sign(payload);
   }

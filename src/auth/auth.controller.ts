@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   CreateBusinessUserDto,
@@ -170,5 +170,14 @@ export class AuthController {
         error: error.message,
       });
     }
+  }
+
+  @Post('logout')
+  async logout(@Req() req: Request, @Res() res: Response) {
+    // Optionally clear the token here if using cookies
+    res.status(200).json({
+      statusCode: 200,
+      message: 'Logout successful',
+    });
   }
 }
