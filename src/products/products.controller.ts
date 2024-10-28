@@ -90,6 +90,7 @@ export class ProductsController {
     @Param('id') productId: string,
     @GetBusinessUser('id') businessUserId: string,
   ) {
+    console.log(businessUserId, productId);
     const result = await this.productService.deleteProductById(
       productId,
       businessUserId,

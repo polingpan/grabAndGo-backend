@@ -86,8 +86,8 @@ export class ProductsService {
     businessUserId: string,
   ): Promise<{ deleted: boolean }> {
     const product = await this.productModel.findOne({
-      _id: productId,
-      businessUser: businessUserId,
+      _id: new Types.ObjectId(productId),
+      businessUser: new Types.ObjectId(businessUserId),
     });
 
     if (!product) {
