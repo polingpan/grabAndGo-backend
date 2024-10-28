@@ -72,6 +72,7 @@ export class ProductsController {
     @GetBusinessUser('id') businessUserId: string,
     @Body() updateProductDto: UpdateProductDto,
   ) {
+    console.log('123', productId, updateProductDto, businessUserId);
     const updatedProduct = await this.productService.updateProductByUser(
       productId,
       updateProductDto,

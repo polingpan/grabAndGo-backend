@@ -53,7 +53,7 @@ export class SeedService {
 
     const products = [];
     for (let i = 0; i < businessUsers.length; i++) {
-      for (let j = 0; j < 3; j++) {
+      for (let j = 0; j < 6; j++) {
         const product = new this.productModel({
           name: faker.commerce.productName(),
           description: faker.commerce.productDescription(),
