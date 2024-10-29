@@ -136,10 +136,7 @@ export class SeedService {
     // Create 40 Orders for Custom User
     for (let i = 0; i < 40; i++) {
       const randomProduct = faker.helpers.arrayElement(products);
-      const orderDate = faker.date.between({
-        from: '2024-07-01T00:00:00.000Z',
-        to: '2024-10-20T23:59:59.999Z',
-      });
+      const randomUser = faker.helpers.arrayElement(users);
 
       await this.orderModel.create({
         quantity: faker.number.int({ min: 1, max: randomProduct.quantity }),
@@ -150,11 +147,10 @@ export class SeedService {
           'canceled',
         ]),
         paymentMethod: faker.helpers.arrayElement(['card', 'cash']),
-        user: customUser._id,
+        user: randomUser._id,
         product: randomProduct._id,
-        businessUser: randomProduct.businessUser,
-        createdAt: orderDate,
-        updatedAt: orderDate,
+        businessUser: customBusinessUser._id,
+        createdAt: faker.date.between({ from: '2024-07-01', to: '2024-10-20' }),
       });
     }
 
