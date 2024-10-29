@@ -20,14 +20,13 @@ export class OrdersService {
   async createOrder(
     userId: string,
     createOrderDto: CreateOrderDto,
-    productId: string,
   ): Promise<Order> {
     const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const product = await this.productModel.findById(productId);
+    const product = await this.productModel.findById(createOrderDto.productId);
     if (!product) {
       throw new NotFoundException('Product not found');
     }

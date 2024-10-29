@@ -20,6 +20,9 @@ export class BusinessUser extends Document {
 
   @Prop({ required: true })
   storeAddress: string;
+
+  @Prop({ default: 'business' })
+  userType: string;
 }
 
 export const BusinessUserSchema = SchemaFactory.createForClass(BusinessUser);

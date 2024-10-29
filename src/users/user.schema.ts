@@ -20,6 +20,9 @@ export class User extends Document {
 
   @Prop()
   phoneNumber: string;
+
+  @Prop({ default: 'regular' })
+  userType: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

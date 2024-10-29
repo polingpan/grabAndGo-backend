@@ -5,6 +5,8 @@ import { Model } from 'mongoose';
 import { Product } from '../products/product.schema';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
+import { Order } from 'src/orders/order.schema';
+import { User } from 'src/users/user.schema';
 
 @Injectable()
 export class SeedService {
@@ -12,12 +14,17 @@ export class SeedService {
     @InjectModel(BusinessUser.name)
     private businessUserModel: Model<BusinessUser>,
     @InjectModel(Product.name) private productModel: Model<Product>,
+    @InjectModel(Order.name) private orderModel: Model<Order>,
+    @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
   async runSeed() {
     await this.businessUserModel.deleteMany({});
     await this.productModel.deleteMany({});
+    await this.orderModel.deleteMany({});
+    await this.userModel.deleteMany({});
 
+    //create business user
     const hashedCustomPassword = await bcrypt.hash(
       'customPassword123',
       parseInt(process.env.SALT_ROUNDS),
@@ -38,7 +45,7 @@ export class SeedService {
         parseInt(process.env.SALT_ROUNDS),
       );
 
-      const businessUser = new this.businessUserModel({
+      const businessUser = await this.businessUserModel.create({
         storeName: faker.company.name(),
         email: faker.internet.email(),
         password: hashedPassword,
@@ -49,12 +56,11 @@ export class SeedService {
       businessUsers.push(businessUser);
     }
 
-    await this.businessUserModel.insertMany(businessUsers.slice(1));
-
+    //create products
     const products = [];
     for (let i = 0; i < businessUsers.length; i++) {
       for (let j = 0; j < 6; j++) {
-        const product = new this.productModel({
+        const product = await this.productModel.create({
           name: faker.commerce.productName(),
           description: faker.commerce.productDescription(),
           pickUpTimeFrom: faker.date.future(),
@@ -79,7 +85,78 @@ export class SeedService {
       }
     }
 
-    await this.productModel.insertMany(products);
+    // Create Users
+    const customUser = await this.userModel.create({
+      firstName: faker.person.firstName(),
+      lastName: faker.person.lastName(),
+      email: 'custom@store.com',
+      password: hashedCustomPassword,
+      isActive: true,
+      phoneNumber: '123-456-7890',
+    });
+
+    const users = [customUser];
+
+    for (let i = 0; i < 9; i++) {
+      const hashedPassword = await bcrypt.hash(
+        faker.internet.password(),
+        parseInt(process.env.SALT_ROUNDS),
+      );
+      const user = await this.userModel.create({
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        email: faker.internet.email(),
+        password: hashedPassword,
+        isActive: faker.datatype.boolean(),
+        phoneNumber: faker.phone.number(),
+      });
+      users.push(user);
+    }
+
+    // // Create Orders
+    // const orders = [];
+    // for (let i = 0; i < users.length; i++) {
+    //   const randomProduct = faker.helpers.arrayElement(products);
+    //   const order = await this.orderModel.create({
+    //     quantity: faker.number.int({ min: 1, max: randomProduct.quantity }),
+    //     totalPrice: randomProduct.price * faker.number.int({ min: 1, max: 5 }),
+    //     status: faker.helpers.arrayElement([
+    //       'pending',
+    //       'completed',
+    //       'canceled',
+    //     ]),
+    //     paymentMethod: faker.helpers.arrayElement(['card', 'cash']),
+    //     user: users[i]._id,
+    //     product: randomProduct._id,
+    //     businessUser: randomProduct.businessUser,
+    //   });
+    //   orders.push(order);
+    // }
+
+    // Create 40 Orders for Custom User
+    for (let i = 0; i < 40; i++) {
+      const randomProduct = faker.helpers.arrayElement(products);
+      const orderDate = faker.date.between({
+        from: '2024-07-01T00:00:00.000Z',
+        to: '2024-10-20T23:59:59.999Z',
+      });
+
+      await this.orderModel.create({
+        quantity: faker.number.int({ min: 1, max: randomProduct.quantity }),
+        totalPrice: randomProduct.price * faker.number.int({ min: 1, max: 5 }),
+        status: faker.helpers.arrayElement([
+          'pending',
+          'completed',
+          'canceled',
+        ]),
+        paymentMethod: faker.helpers.arrayElement(['card', 'cash']),
+        user: customUser._id,
+        product: randomProduct._id,
+        businessUser: randomProduct.businessUser,
+        createdAt: orderDate,
+        updatedAt: orderDate,
+      });
+    }
 
     console.log(
       'Database seeding complete with custom and faker-generated data!',

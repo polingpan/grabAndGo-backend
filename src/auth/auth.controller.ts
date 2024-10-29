@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  Res,
+  ValidationPipe,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   CreateBusinessUserDto,
@@ -12,7 +21,11 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  async signUp(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
+  async signUp(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    createUserDto: CreateUserDto,
+    @Res() res: Response,
+  ) {
     try {
       await this.authService.signUp(createUserDto);
 
@@ -29,7 +42,11 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+  async login(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    loginDto: LoginDto,
+    @Res() res: Response,
+  ) {
     try {
       const result = await this.authService.login(
         loginDto.email,
@@ -78,7 +95,8 @@ export class AuthController {
 
   @Post('business-Signup')
   async initBussinessSignup(
-    @Body() createBusinessUserDto: CreateBusinessUserDto,
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    createBusinessUserDto: CreateBusinessUserDto,
     @Res() res: Response,
   ) {
     try {
@@ -151,7 +169,11 @@ export class AuthController {
   }
 
   @Post('business-login')
-  async businessLogin(@Body() loginDto: LoginDto, @Res() res: Response) {
+  async businessLogin(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    loginDto: LoginDto,
+    @Res() res: Response,
+  ) {
     try {
       const result = await this.authService.businessLogin(
         loginDto.email,
