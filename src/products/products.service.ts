@@ -62,9 +62,9 @@ export class ProductsService {
   }
 
   async updateProductByUser(
-    businessUserId: string,
-    updateProductDto: UpdateProductDto,
     productId: string,
+    updateProductDto: UpdateProductDto,
+    businessUserId: string,
   ) {
     const product = await this.productModel.findOne({
       _id: new Types.ObjectId(productId),
