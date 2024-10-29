@@ -9,10 +9,10 @@ export class Order extends Document {
   @Prop({ required: true })
   totalPrice: number;
 
-  @Prop({ required: true })
+  @Prop({ required: true, enum: ['Pending', 'Completed', 'Cancelled'] })
   status: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, enum: ['Apple Pay', 'Card'] })
   paymentMethod: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
