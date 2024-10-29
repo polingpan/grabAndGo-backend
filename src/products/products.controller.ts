@@ -7,10 +7,11 @@ import {
   Patch,
   Post,
   UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
-import { GetBusinessUser } from 'src/auth/decorators/get-business-user.decorator';
+import { GetBusinessUser } from 'src/auth/decorators/get-info.decorator';
 import { CreateProductDto, UpdateProductDto } from 'src/dto/product.dto';
 
 @Controller('products')
@@ -21,7 +22,8 @@ export class ProductsController {
   @Post()
   async createProduct(
     @GetBusinessUser('id') businessUserId: string,
-    @Body() createProductDto: CreateProductDto,
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    createProductDto: CreateProductDto,
   ) {
     const product = await this.productService.createProduct(
       businessUserId,
@@ -70,7 +72,8 @@ export class ProductsController {
   async updateProduct(
     @Param('id') productId: string,
     @GetBusinessUser('id') businessUserId: string,
-    @Body() updateProductDto: UpdateProductDto,
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    updateProductDto: UpdateProductDto,
   ) {
     const updatedProduct = await this.productService.updateProductByUser(
       productId,

@@ -68,7 +68,11 @@ export class AuthService {
       throw new Error('Invalid email or password.');
     }
 
-    const payload = { userId: user._id, email: user.email };
+    const payload = {
+      sub: user._id,
+      email: user.email,
+      userType: user.userType,
+    };
 
     return this.jwtService.sign(payload);
   }
@@ -139,7 +143,12 @@ export class AuthService {
       throw new Error('Invalid email or password.');
     }
 
-    const payload = { sub: user._id, email: user.email, name: user.storeName };
+    const payload = {
+      sub: user._id,
+      email: user.email,
+      name: user.storeName,
+      userType: user.userType,
+    };
 
     return this.jwtService.sign(payload);
   }
