@@ -57,6 +57,7 @@ export class OrdersService {
 
     return this.orderModel
       .find({ businessUser: new Types.ObjectId(businessUserId) })
+      .sort({ createdAt: -1 })
       .populate('user', 'firstName lastName')
       .populate('product', 'name price')
       .exec();

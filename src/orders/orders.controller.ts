@@ -36,7 +36,7 @@ export class OrdersController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getAllProductsByBusinessUser(
+  async getAllOrdersByBusinessUser(
     @GetBusinessUser('id') businessUserId: string,
   ) {
     const orders = await this.orderService.getAllOrdersByUser(businessUserId);
