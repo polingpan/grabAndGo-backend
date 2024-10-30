@@ -148,6 +148,8 @@ export class AuthService {
       email: user.email,
       name: user.storeName,
       userType: user.userType,
+      storeAddress: user.storeAddress,
+      phoneNumber: user.phoneNumber,
     };
 
     return this.jwtService.sign(payload);
