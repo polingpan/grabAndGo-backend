@@ -22,8 +22,6 @@ export const GetUser = createParamDecorator(
     const request = ctx.switchToHttp().getRequest();
     const user = request.user;
 
-    console.log(user);
-
     if (user.userType !== 'regular') {
       throw new ForbiddenException('Access restricted to regular users.');
     }

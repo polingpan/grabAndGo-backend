@@ -13,6 +13,8 @@ import {
 } from 'src/business-users/business-user.schema';
 import { BusinessUsersService } from 'src/business-users/business-users.service';
 import { JwtStrategy } from './jwt/jwt.strategy';
+import { Order, OrderSchema } from 'src/orders/order.schema';
+import { Product, ProductSchema } from 'src/products/product.schema';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { JwtStrategy } from './jwt/jwt.strategy';
     MongooseModule.forFeature([
       { name: BusinessUser.name, schema: BusinessUserSchema },
     ]),
+    MongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }]),
+    MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
   ],
   controllers: [AuthController],
   providers: [
