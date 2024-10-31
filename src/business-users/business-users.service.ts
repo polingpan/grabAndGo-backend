@@ -36,17 +36,55 @@ export class BusinessUsersService {
     return businessUser;
   }
 
-  async getDashboardData(businessUserId: string) {
+  async getDashboardData(businessUserId: string, days?: number) {
     const businessUser = await this.businessUserModel.findById(businessUserId);
     if (!businessUser) {
       throw new NotFoundException('Business user not found');
     }
 
-    return this.orderModel
-      .find({ businessUser: new Types.ObjectId(businessUserId) })
-      .sort({ createdAt: 1 })
-      .populate('user', 'firstName lastName')
-      .populate('product', 'name price')
-      .exec();
+    const startDate = days
+      ? new Date(new Date().setDate(new Date().getDate() - days))
+      : undefined;
+
+    const orders = await this.orderModel.aggregate([
+      {
+        $match: {
+          businessUser: new Types.ObjectId(businessUserId),
+          ...(startDate && { createdAt: { $gte: startDate } }),
+          status: 'Completed',
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: '$totalPrice' },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    const data = [
+      {
+        title: '訂單',
+        interval: days ? `Last ${days} days` : 'Since Joined',
+        data: orders.map((order) => ({
+          date: order._id,
+          value: order.totalOrders,
+        })),
+      },
+      {
+        title: '營收',
+        interval: days ? `Last ${days} days` : 'Since Joined',
+        data: orders.map((order) => ({
+          date: order._id,
+          value: order.totalRevenue,
+        })),
+      },
+    ];
+
+    return data;
   }
 }
