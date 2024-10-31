@@ -5,6 +5,7 @@ import {
   Get,
   UseGuards,
   ValidationPipe,
+  Query,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from '../dto/order.dto';
@@ -37,12 +38,19 @@ export class OrdersController {
   @Get()
   async getAllOrdersByBusinessUser(
     @GetBusinessUser('id') businessUserId: string,
+    @Query('page') page = 0,
+    @Query('limit') limit = 1,
   ) {
-    const orders = await this.orderService.getAllOrdersByUser(businessUserId);
+    const orders = await this.orderService.getAllOrdersByUser(
+      businessUserId,
+      +page,
+      +limit,
+    );
+
     return {
       statusCode: 200,
       message: 'Orders retrieved successfully',
-      orders,
+      ...orders,
     };
   }
 }

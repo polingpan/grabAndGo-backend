@@ -49,17 +49,36 @@ export class OrdersService {
     return newOrder.save();
   }
 
-  async getAllOrdersByUser(businessUserId: string) {
+  async getAllOrdersByUser(
+    businessUserId: string,
+    page: number,
+    limit: number,
+  ) {
     const businessUser = await this.businessUserModel.findById(businessUserId);
     if (!businessUser) {
       throw new NotFoundException('Business user not found');
     }
+    const skip = page * limit;
 
-    return this.orderModel
+    const orders = await this.orderModel
       .find({ businessUser: new Types.ObjectId(businessUserId) })
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate('user', 'firstName lastName')
       .populate('product', 'name price')
       .exec();
+
+    const totalOrders = await this.orderModel.countDocuments({
+      businessUser: new Types.ObjectId(businessUserId),
+    });
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    return {
+      orders,
+      totalOrders,
+      totalPages,
+      currentPage: page,
+    };
   }
 }
