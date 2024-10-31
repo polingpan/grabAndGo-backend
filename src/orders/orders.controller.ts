@@ -38,13 +38,15 @@ export class OrdersController {
   @Get()
   async getAllOrdersByBusinessUser(
     @GetBusinessUser('id') businessUserId: string,
-    @Query('page') page = 0,
-    @Query('limit') limit = 1,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search: string,
   ) {
     const orders = await this.orderService.getAllOrdersByUser(
       businessUserId,
       +page,
       +limit,
+      search,
     );
 
     return {

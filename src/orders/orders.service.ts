@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, PipelineStage, Types } from 'mongoose';
 import { CreateOrderDto } from 'src/dto/order.dto';
 import { User } from 'src/users/user.schema';
 import { Product } from 'src/products/product.schema';
@@ -53,6 +53,7 @@ export class OrdersService {
     businessUserId: string,
     page: number,
     limit: number,
+    search: string,
   ) {
     const businessUser = await this.businessUserModel.findById(businessUserId);
     if (!businessUser) {
@@ -60,18 +61,60 @@ export class OrdersService {
     }
     const skip = page * limit;
 
-    const orders = await this.orderModel
-      .find({ businessUser: new Types.ObjectId(businessUserId) })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('user', 'firstName lastName')
-      .populate('product', 'name price')
-      .exec();
+    const pipeline: PipelineStage[] = [
+      { $match: { businessUser: new Types.ObjectId(businessUserId) } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'product',
+          foreignField: '_id',
+          as: 'product',
+        },
+      },
+      { $unwind: '$product' },
+    ];
 
-    const totalOrders = await this.orderModel.countDocuments({
-      businessUser: new Types.ObjectId(businessUserId),
-    });
+    if (search) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { status: { $regex: search, $options: 'i' } },
+            { 'user.firstName': { $regex: search, $options: 'i' } },
+            { 'user.lastName': { $regex: search, $options: 'i' } },
+            { 'product.name': { $regex: search, $options: 'i' } },
+          ],
+        },
+      });
+    }
+
+    pipeline.push(
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+    );
+
+    const orders = await this.orderModel.aggregate(pipeline).exec();
+
+    const countPipeline = [...pipeline];
+    countPipeline.splice(
+      countPipeline.findIndex((stage) => '$skip' in stage),
+      2,
+    );
+    countPipeline.push({ $count: 'totalOrders' });
+    const totalOrdersResult = await this.orderModel
+      .aggregate(countPipeline)
+      .exec();
+    const totalOrders = totalOrdersResult[0]?.totalOrders || 0;
+
     const totalPages = Math.ceil(totalOrders / limit);
 
     return {
