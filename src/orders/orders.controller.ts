@@ -8,7 +8,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto } from '../dto/order.dto';
+import { CreateOrderDto, GetOrdersQueryDto } from '../dto/order.dto';
 import {
   GetBusinessUser,
   GetUser,
@@ -38,15 +38,17 @@ export class OrdersController {
   @Get()
   async getAllOrdersByBusinessUser(
     @GetBusinessUser('id') businessUserId: string,
-    @Query('page') page: number,
-    @Query('limit') limit: number,
-    @Query('search') search: string,
+    @Query() query: GetOrdersQueryDto,
   ) {
+    const { page, limit, search, startDate, endDate } = query;
+
     const orders = await this.orderService.getAllOrdersByUser(
       businessUserId,
-      +page,
-      +limit,
+      page,
+      limit,
       search,
+      startDate,
+      endDate,
     );
 
     return {

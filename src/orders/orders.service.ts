@@ -54,6 +54,8 @@ export class OrdersService {
     page: number,
     limit: number,
     search: string,
+    startDate: string,
+    endDate: string,
   ) {
     const businessUser = await this.businessUserModel.findById(businessUserId);
     if (!businessUser) {
@@ -101,6 +103,20 @@ export class OrdersService {
       { $skip: skip },
       { $limit: limit },
     );
+
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      const dateFilter: any = {};
+      if (startDate) {
+        dateFilter.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        dateFilter.$lte = new Date(endDate);
+      }
+      pipeline.push({
+        $match: { createdAt: dateFilter },
+      });
+    }
 
     const orders = await this.orderModel.aggregate(pipeline).exec();
 
