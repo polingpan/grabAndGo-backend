@@ -5,9 +5,10 @@ import {
   Get,
   UseGuards,
   ValidationPipe,
+  Query,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto } from '../dto/order.dto';
+import { CreateOrderDto, GetOrdersQueryDto } from '../dto/order.dto';
 import {
   GetBusinessUser,
   GetUser,
@@ -37,12 +38,23 @@ export class OrdersController {
   @Get()
   async getAllOrdersByBusinessUser(
     @GetBusinessUser('id') businessUserId: string,
+    @Query() query: GetOrdersQueryDto,
   ) {
-    const orders = await this.orderService.getAllOrdersByUser(businessUserId);
+    const { page, limit, search, startDate, endDate } = query;
+
+    const orders = await this.orderService.getAllOrdersByUser(
+      businessUserId,
+      page,
+      limit,
+      search,
+      startDate,
+      endDate,
+    );
+
     return {
       statusCode: 200,
       message: 'Orders retrieved successfully',
-      orders,
+      ...orders,
     };
   }
 }

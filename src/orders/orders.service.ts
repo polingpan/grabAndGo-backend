@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, PipelineStage, Types } from 'mongoose';
 import { CreateOrderDto } from 'src/dto/order.dto';
 import { User } from 'src/users/user.schema';
 import { Product } from 'src/products/product.schema';
@@ -49,17 +49,95 @@ export class OrdersService {
     return newOrder.save();
   }
 
-  async getAllOrdersByUser(businessUserId: string) {
+  async getAllOrdersByUser(
+    businessUserId: string,
+    page: number,
+    limit: number,
+    search: string,
+    startDate: string,
+    endDate: string,
+  ) {
     const businessUser = await this.businessUserModel.findById(businessUserId);
     if (!businessUser) {
       throw new NotFoundException('Business user not found');
     }
+    const skip = page * limit;
 
-    return this.orderModel
-      .find({ businessUser: new Types.ObjectId(businessUserId) })
-      .sort({ createdAt: -1 })
-      .populate('user', 'firstName lastName')
-      .populate('product', 'name price')
+    const pipeline: PipelineStage[] = [
+      { $match: { businessUser: new Types.ObjectId(businessUserId) } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'product',
+          foreignField: '_id',
+          as: 'product',
+        },
+      },
+      { $unwind: '$product' },
+    ];
+
+    if (search) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { status: { $regex: search, $options: 'i' } },
+            { 'user.firstName': { $regex: search, $options: 'i' } },
+            { 'user.lastName': { $regex: search, $options: 'i' } },
+            { 'product.name': { $regex: search, $options: 'i' } },
+          ],
+        },
+      });
+    }
+
+    pipeline.push(
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+    );
+
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      const dateFilter: any = {};
+      if (startDate) {
+        dateFilter.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        dateFilter.$lte = new Date(endDate);
+      }
+      pipeline.push({
+        $match: { createdAt: dateFilter },
+      });
+    }
+
+    const orders = await this.orderModel.aggregate(pipeline).exec();
+
+    const countPipeline = [...pipeline];
+    countPipeline.splice(
+      countPipeline.findIndex((stage) => '$skip' in stage),
+      2,
+    );
+    countPipeline.push({ $count: 'totalOrders' });
+    const totalOrdersResult = await this.orderModel
+      .aggregate(countPipeline)
       .exec();
+    const totalOrders = totalOrdersResult[0]?.totalOrders || 0;
+
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    return {
+      orders,
+      totalOrders,
+      totalPages,
+      currentPage: page,
+    };
   }
 }

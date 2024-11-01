@@ -134,7 +134,7 @@ export class SeedService {
     // }
 
     // Create 40 Orders for Custom User
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 1000; i++) {
       const randomProduct = faker.helpers.arrayElement(products);
       const randomUser = faker.helpers.arrayElement(users);
 
