@@ -134,23 +134,22 @@ export class SeedService {
     // }
 
     // Create 40 Orders for Custom User
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 20; i++) {
       const randomProduct = faker.helpers.arrayElement(products);
       const randomUser = faker.helpers.arrayElement(users);
 
       await this.orderModel.create({
         quantity: faker.number.int({ min: 1, max: randomProduct.quantity }),
         totalPrice: randomProduct.price * faker.number.int({ min: 1, max: 5 }),
-        status: faker.helpers.arrayElement([
-          'Pending',
-          'Completed',
-          'Cancelled',
-        ]),
+        status: faker.helpers.arrayElement(['Pickup Ready']),
         paymentMethod: faker.helpers.arrayElement(['Card', 'Apple Pay']),
         user: randomUser._id,
         product: randomProduct._id,
         businessUser: customBusinessUser._id,
-        createdAt: faker.date.between({ from: '2024-07-01', to: '2024-10-20' }),
+        createdAt: faker.date.between({
+          from: new Date('2024-11-03T04:00:00.000Z'),
+          to: new Date('2024-11-04T03:59:59.999Z'),
+        }),
       });
     }
 

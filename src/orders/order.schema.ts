@@ -9,7 +9,10 @@ export class Order extends Document {
   @Prop({ required: true })
   totalPrice: number;
 
-  @Prop({ required: true, enum: ['Pending', 'Completed', 'Cancelled'] })
+  @Prop({
+    required: true,
+    enum: ['Pending', 'Pickup Ready', 'Completed', 'Cancelled'],
+  })
   status: string;
 
   @Prop({ required: true, enum: ['Apple Pay', 'Card'] })
