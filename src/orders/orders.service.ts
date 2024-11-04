@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, PipelineStage, Types } from 'mongoose';
 import { CreateOrderDto } from 'src/dto/order.dto';
@@ -37,6 +41,10 @@ export class OrdersService {
       throw new NotFoundException('Business user for the product not found');
     }
 
+    if (product.quantity < createOrderDto.quantity) {
+      throw new BadRequestException('Insufficient product quantity');
+    }
+
     const totalPrice = product.price * createOrderDto.quantity;
 
     const newOrder = new this.orderModel({
@@ -47,7 +55,12 @@ export class OrdersService {
       totalPrice,
     });
 
-    return newOrder.save();
+    const order = await newOrder.save();
+
+    product.quantity -= createOrderDto.quantity;
+    await product.save();
+
+    return order;
   }
 
   async getAllOrdersByUser(
