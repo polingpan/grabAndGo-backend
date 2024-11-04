@@ -6,7 +6,8 @@ import { User } from 'src/users/user.schema';
 import { Product } from 'src/products/product.schema';
 import { Order } from 'src/orders/order.schema';
 import { BusinessUser } from 'src/business-users/business-user.schema';
-
+import { startOfDay, endOfDay } from 'date-fns';
+import { toDate, fromZonedTime } from 'date-fns-tz';
 @Injectable()
 export class OrdersService {
   constructor(
@@ -139,5 +140,90 @@ export class OrdersService {
       totalPages,
       currentPage: page,
     };
+  }
+
+  async getTodayOrdersByBusinessUser(businessUserId: string): Promise<Order[]> {
+    // Check if the business user exists
+    const businessUser = await this.businessUserModel.findById(businessUserId);
+    if (!businessUser) {
+      throw new NotFoundException('Business user not found');
+    }
+
+    const timeZone = 'America/Toronto'; // Toronto time zone
+
+    const now = new Date();
+
+    // Convert system time to time zone time
+    const zonedNow = toDate(now, { timeZone });
+
+    // Calculate the start and end of the day in zone time
+    const startOfDayZoned = startOfDay(zonedNow);
+    const endOfDayZoned = endOfDay(zonedNow);
+
+    // Convert the start and end of day to UTC
+    const startOfDayUTC = fromZonedTime(startOfDayZoned, timeZone);
+    const endOfDayUTC = fromZonedTime(endOfDayZoned, timeZone);
+
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          businessUser: new Types.ObjectId(businessUserId),
+          createdAt: { $gte: startOfDayUTC, $lte: endOfDayUTC },
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      { $unwind: '$user' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'product',
+          foreignField: '_id',
+          as: 'product',
+        },
+      },
+      { $unwind: '$product' },
+      {
+        $project: {
+          productName: '$product.name',
+          quantity: 1,
+          status: 1,
+          totalPrice: 1,
+          userName: { $concat: ['$user.firstName', ' ', '$user.lastName'] },
+        },
+      },
+    ];
+
+    return await this.orderModel.aggregate(pipeline).exec();
+  }
+
+  async updateOrderStatus(
+    businessUserId: string,
+    orderId: string,
+  ): Promise<Order> {
+    const businessUser = await this.businessUserModel.findById(businessUserId);
+    if (!businessUser) {
+      throw new NotFoundException('Business user not found');
+    }
+
+    const order = await this.orderModel.findByIdAndUpdate(
+      orderId,
+      { status: 'Completed' },
+      { new: true },
+    );
+
+    if (!order) {
+      throw new NotFoundException(
+        'Order not found or you do not have access to this order',
+      );
+    }
+
+    return order;
   }
 }

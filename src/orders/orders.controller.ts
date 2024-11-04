@@ -6,6 +6,8 @@ import {
   UseGuards,
   ValidationPipe,
   Query,
+  Param,
+  Put,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto, GetOrdersQueryDto } from '../dto/order.dto';
@@ -55,6 +57,40 @@ export class OrdersController {
       statusCode: 200,
       message: 'Orders retrieved successfully',
       ...orders,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/today')
+  async getTodayOrdersByBusinessUser(
+    @GetBusinessUser('id') businessUserId: string,
+  ) {
+    const orders =
+      await this.orderService.getTodayOrdersByBusinessUser(businessUserId);
+
+    return {
+      statusCode: 200,
+      message: 'Orders retrieved successfully',
+      orders,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('/status')
+  async updateOrderStatus(
+    @GetBusinessUser('id') businessUserId: string,
+    @Query('orderId') orderId: string,
+  ) {
+    console.log(orderId);
+    const order = await this.orderService.updateOrderStatus(
+      businessUserId,
+      orderId,
+    );
+
+    return {
+      statusCode: 200,
+      message: 'Orders updated successfully',
+      order,
     };
   }
 }
